@@ -1,27 +1,21 @@
 package main
 
 import (
-	"fmt"
+	"flag"
+	"log"
 	"os"
-
-	"github.com/peterstace/sdfv/engine"
 )
 
 func main() {
-	if err := mainE(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+	var (
+		pxWide   = flag.Int("px-wide", 640, "width of the output image in pixels")
+		pxHigh   = flag.Int("px-high", 360, "height of the output image in pixels")
+		filename = flag.String("output-filename", "out.png", "output filename")
+	)
+	flag.Parse()
+
+	if err := run(*pxWide, *pxHigh, *filename); err != nil {
+		log.Printf("error running: %v", err)
 		os.Exit(1)
 	}
-}
-
-func mainE() error {
-	args := engine.RunArgs{}
-	buf, err := engine.Run(args)
-	if err != nil {
-		return err
-	}
-	if err := os.WriteFile("out.gif", buf, 0644); err != nil {
-		return err
-	}
-	return nil
 }
