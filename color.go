@@ -10,7 +10,8 @@ type fcolor struct {
 
 func (c fcolor) color() color.RGBA {
 	const w = 0x100
-	lim := c.rgb.max(vec3{}).min(vec3{1, 1, 1})
+	const max = 1.0 - 0.5/w
+	lim := c.rgb.max(vec3{}).min(vec3{max, max, max})
 	return color.RGBA{
 		R: uint8(lim.x * w),
 		G: uint8(lim.y * w),

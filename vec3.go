@@ -57,6 +57,7 @@ func (v vec3) max(u vec3) vec3 {
 		z: math.Max(v.z, u.z),
 	}
 }
+
 func (v vec3) min(u vec3) vec3 {
 	return vec3{
 		x: math.Min(v.x, u.x),
