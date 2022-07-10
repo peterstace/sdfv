@@ -53,7 +53,7 @@ func (c *camera) makeRay(x, y float64, rng *rand.Rand) ray {
 		add(c.screenX.scale(x)).
 		add(c.screenY.scale(y))
 	return ray{
-		o: start,
-		d: end.sub(start).unit(),
+		origin: start,
+		uDir:   end.sub(start).unit(),
 	}
 }

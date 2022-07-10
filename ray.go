@@ -1,9 +1,10 @@
 package main
 
 type ray struct {
-	o, d vec3
+	origin vec3 // origin
+	uDir   vec3 // direction (unit vector)
 }
 
 func (r ray) at(t float64) vec3 {
-	return r.o.add(r.d.scale(t))
+	return r.origin.add(r.uDir.scale(t))
 }

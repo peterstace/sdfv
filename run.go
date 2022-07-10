@@ -9,10 +9,10 @@ import (
 
 func run(pxWide, pxHigh int, filename string) error {
 	cam := newCamera(cameraConfig{
-		location:    vec3{x: 0, y: 0, z: 2},
+		location:    vec3{z: 10},
 		lookingAt:   vec3{},
 		upDirection: vec3{y: 1},
-		fovDegrees:  90,
+		fovDegrees:  20,
 		focalLength: 3,
 		focalRatio:  math.MaxFloat64,
 	})
@@ -38,33 +38,91 @@ func renderFrame(pxWide, pxHigh int, cam *camera) accumulator {
 		for pxX := 0; pxX < pxWide; pxX++ {
 			x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
 			r := cam.makeRay(x, y, rng)
-			fc := trace(r, sphere)
+
+			sk := skySum(
+				sun(
+					vec3{y: 5, x: 1, z: 2},
+					10.0,
+					fcolor{vec3{1, 1, 1}},
+				),
+				baseSky(fcolor{vec3{0.1, 0.1, 0.2}}),
+			)
+			fc := trace(r, sphere, sk, rng)
+
 			acc.add(pxX, pxY, fc)
 		}
 	}
 	return acc
 }
 
-func trace(r ray, fn sdf) fcolor {
-	t, ok := distance(r, fn)
+func trace(r ray, fn sdf, sk sky, rng *rand.Rand) fcolor {
+	t, ok := findSurface(r, fn)
+	if !ok {
+		return sk(r.uDir)
+	}
+	hit := r.at(t)
+
+	uNorm := uNormal(hit, fn)
+	uHemi := vec3{
+		rng.NormFloat64(),
+		rng.NormFloat64(),
+		rng.NormFloat64(),
+	}.unit()
+	if uHemi.dot(uNorm) < 0 {
+		uHemi = uHemi.scale(-1)
+	}
+
+	const bumpOut = 0.001
+	nextR := ray{
+		origin: hit.add(uNorm.scale(bumpOut)),
+		uDir:   uHemi,
+	}
+	brdf := uHemi.dot(uNorm)
+	cf := trace(nextR, fn, sk, rng)
+	cf.rgb = cf.rgb.scale(brdf)
+	return cf
+}
+
+func unitDirToColor(uDir vec3) fcolor {
+	return fcolor{rgb: uDir.add(vec3{1, 1, 1}).scale(0.5)}
+}
+
+func traceNormal(r ray, fn sdf) fcolor {
+	t, ok := findSurface(r, fn)
 	if !ok {
 		return fcolor{}
 	}
-	t *= 0.1
-	return fcolor{rgb: vec3{x: t, y: t, z: t}}
+	n := uNormal(r.at(t), fn)
+	return unitDirToColor(n)
 }
 
-func distance(r ray, fn sdf) (float64, bool) {
+func uNormal(v vec3, fn sdf) vec3 {
+	const eps = 1e-6
+	offsetX := fn(v.add(vec3{x: eps}))
+	offsetY := fn(v.add(vec3{y: eps}))
+	offsetZ := fn(v.add(vec3{z: eps}))
+	offset0 := fn(v)
+	return vec3{offsetX, offsetY, offsetZ}.
+		sub(vec3{offset0, offset0, offset0}).
+		unit()
+}
+
+func findSurface(r ray, fn sdf) (float64, bool) {
+	const (
+		escapeThreshold    = 100
+		intersectThreshold = 0.001
+		maxIterations      = 1e6
+	)
 	t := 0.0
-	for i := 0; i < 100; i++ {
+	for i := 0; i < maxIterations; i++ {
 		d := fn(r.at(t))
-		if d >= 100 {
+		if d >= escapeThreshold {
 			return 0, false
 		}
 		t += d
-		if d < 0.001 {
+		if d < intersectThreshold {
 			return t, true
 		}
 	}
-	return 0, false
+	panic("reached max iterations")
 }
