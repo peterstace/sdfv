@@ -8,6 +8,8 @@ type engine struct {
 	fn  sdf
 	sk  sky
 	rng *rand.Rand
+
+	debugNorms bool
 }
 
 func (e *engine) renderFrame() {
@@ -17,7 +19,12 @@ func (e *engine) renderFrame() {
 		for pxX := 0; pxX < e.acc.pxWide; pxX++ {
 			x := (float64(pxX-e.acc.pxWide/2) + e.rng.Float64()) * pxPitch
 			r := e.cam.makeRay(x, y, e.rng)
-			fc := e.trace(r)
+			var fc fcolor
+			if e.debugNorms {
+				fc = e.traceNormal(r)
+			} else {
+				fc = e.trace(r)
+			}
 			e.acc.add(pxX, pxY, fc)
 		}
 	}
@@ -51,10 +58,6 @@ func (e *engine) trace(r ray) fcolor {
 	return cf
 }
 
-func unitDirToColor(uDir vec3) fcolor {
-	return fcolor{rgb: uDir.add(vec3{1, 1, 1}).scale(0.5)}
-}
-
 func (e *engine) traceNormal(r ray) fcolor {
 	t, ok := e.findSurface(r)
 	if !ok {
@@ -62,6 +65,10 @@ func (e *engine) traceNormal(r ray) fcolor {
 	}
 	n := e.uNormal(r.at(t))
 	return unitDirToColor(n)
+}
+
+func unitDirToColor(uDir vec3) fcolor {
+	return fcolor{rgb: uDir.add(vec3{1, 1, 1}).scale(0.5)}
 }
 
 func (e *engine) uNormal(v vec3) vec3 {

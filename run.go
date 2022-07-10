@@ -5,10 +5,10 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"path/filepath"
 )
 
-func run(pxWide, pxHigh int, filename string) error {
-	acc := newAccumulator(pxWide, pxHigh)
+func run(pxWide, pxHigh int, filename string, debug bool) error {
 	cam := newCamera(cameraConfig{
 		location:    vec3{z: 10},
 		lookingAt:   vec3{},
@@ -26,10 +26,34 @@ func run(pxWide, pxHigh int, filename string) error {
 		),
 		baseSky(fcolor{vec3{0.1, 0.1, 0.2}}),
 	)
-	rng := rand.New(rand.NewSource(0))
-	eng := &engine{acc, cam, fn, sk, rng}
-	eng.renderFrame()
 
+	acc := newAccumulator(pxWide, pxHigh)
+	rng := rand.New(rand.NewSource(0))
+	eng := &engine{acc, cam, fn, sk, rng, false}
+	eng.renderFrame()
+	if err := writeAccAsImage(acc, filename); err != nil {
+		return err
+	}
+
+	if debug {
+		acc := newAccumulator(pxWide, pxHigh)
+		rng := rand.New(rand.NewSource(0))
+		eng := &engine{acc, cam, fn, sk, rng, true}
+		eng.renderFrame()
+		if err := writeAccAsImage(acc, debugNormsFilename(filename)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func debugNormsFilename(filename string) string {
+	ext := filepath.Ext(filename)
+	return filename[:len(ext)-1] + "_debug_norms" + ext
+}
+
+func writeAccAsImage(acc *accumulator, filename string) error {
 	img := acc.image()
 	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 	if err != nil {
