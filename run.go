@@ -17,7 +17,12 @@ func run(pxWide, pxHigh int, filename string, debug bool) error {
 		focalLength: 3,
 		focalRatio:  math.MaxFloat64,
 	})
-	fn := sphere
+
+	fn := union(
+		sphere(vec3{}, 1),
+		box(vec3{-1.5, -2, -1.5}, vec3{+1.5, -1, +1.5}),
+	)
+
 	sk := skySum(
 		sun(
 			vec3{y: 5, x: 1, z: 2},

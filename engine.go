@@ -86,7 +86,7 @@ func (e *engine) findSurface(r ray) (float64, bool) {
 	const (
 		escapeThreshold    = 100
 		intersectThreshold = 0.001
-		maxIterations      = 1e6
+		maxIterations      = 1e8
 	)
 	t := 0.0
 	for i := 0; i < maxIterations; i++ {
