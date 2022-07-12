@@ -2,10 +2,21 @@ package main
 
 import (
 	"image/color"
+	"math"
 )
 
 type fcolor struct {
 	rgb vec3
+}
+
+func (c fcolor) pow(exp float64) fcolor {
+	return fcolor{
+		rgb: vec3{
+			x: math.Pow(c.rgb.x, exp),
+			y: math.Pow(c.rgb.y, exp),
+			z: math.Pow(c.rgb.z, exp),
+		},
+	}
 }
 
 func (c fcolor) color() color.RGBA {

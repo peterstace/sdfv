@@ -32,15 +32,31 @@ func (a *accumulator) idx(pxX, pxY int) int {
 	return pxX + pxY*a.pxWide
 }
 
-func (a *accumulator) image() image.Image {
+func (a *accumulator) image(raw bool) image.Image {
+	const (
+		gamma    = 2.2
+		exposure = 1.0
+	)
+	mean := a.mean()
 	img := image.NewRGBA(image.Rectangle{
 		Max: image.Pt(a.pxWide, a.pxHigh),
 	})
 	for pxY := 0; pxY < a.pxHigh; pxY++ {
 		for pxX := 0; pxX < a.pxWide; pxX++ {
 			fc := a.get(pxX, pxY)
+			if !raw {
+				fc = fcolor{fc.rgb.scale(0.5 * exposure / mean)}.pow(1 / gamma)
+			}
 			img.Set(pxX, pxY, fc.color())
 		}
 	}
 	return img
+}
+
+func (a *accumulator) mean() float64 {
+	var sum float64
+	for _, c := range a.data {
+		sum += c.rgb.x + c.rgb.y + c.rgb.z
+	}
+	return sum / float64(len(a.data)) / 3.0
 }

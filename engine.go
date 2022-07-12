@@ -3,11 +3,12 @@ package main
 import "math/rand"
 
 type engine struct {
-	acc *accumulator
-	cam *camera
-	fn  sdf
-	sk  sky
-	rng *rand.Rand
+	acc     *accumulator
+	cam     *camera
+	fn      sdf
+	sk      sky
+	rng     *rand.Rand
+	samples int
 
 	debugNorms bool
 }
@@ -18,14 +19,16 @@ func (e *engine) renderFrame() {
 		y := (float64(pxY-e.acc.pxHigh/2) + e.rng.Float64()) * pxPitch * -1.0
 		for pxX := 0; pxX < e.acc.pxWide; pxX++ {
 			x := (float64(pxX-e.acc.pxWide/2) + e.rng.Float64()) * pxPitch
-			r := e.cam.makeRay(x, y, e.rng)
-			var fc fcolor
-			if e.debugNorms {
-				fc = e.traceNormal(r)
-			} else {
-				fc = e.trace(r)
+			for s := 0; s < e.samples; s++ {
+				r := e.cam.makeRay(x, y, e.rng)
+				var fc fcolor
+				if e.debugNorms {
+					fc = e.traceNormal(r)
+				} else {
+					fc = e.trace(r)
+				}
+				e.acc.add(pxX, pxY, fc)
 			}
-			e.acc.add(pxX, pxY, fc)
 		}
 	}
 }
