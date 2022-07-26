@@ -65,3 +65,7 @@ func (v vec3) min(u vec3) vec3 {
 		z: math.Min(v.z, u.z),
 	}
 }
+
+func (v vec3) asColor() fcolor {
+	return fcolor{v.x, v.y, v.z}
+}

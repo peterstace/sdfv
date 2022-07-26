@@ -27,9 +27,9 @@ func run(pxWide, pxHigh int, filename string, samples int, debug bool) error {
 		sun(
 			vec3{y: 5, x: 1, z: 2},
 			10.0,
-			fcolor{vec3{1, 1, 1}},
+			fcolor{1, 1, 1},
 		),
-		baseSky(fcolor{vec3{0.0005, 0.0005, 0.0010}}),
+		baseSky(fcolor{0.0005, 0.0005, 0.0010}),
 	)
 
 	acc := newAccumulator(pxWide, pxHigh)

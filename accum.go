@@ -20,7 +20,7 @@ func newAccumulator(pxWide, pxHigh int) *accumulator {
 
 func (a *accumulator) add(pxX, pxY int, c fcolor) {
 	idx := a.idx(pxX, pxY)
-	a.data[idx] = fcolor{a.data[idx].rgb.add(c.rgb)}
+	a.data[idx] = a.data[idx].add(c)
 }
 
 func (a *accumulator) get(pxX, pxY int) fcolor {
@@ -45,7 +45,7 @@ func (a *accumulator) image(raw bool) image.Image {
 		for pxX := 0; pxX < a.pxWide; pxX++ {
 			fc := a.get(pxX, pxY)
 			if !raw {
-				fc = fcolor{fc.rgb.scale(0.5 * exposure / mean)}.pow(1 / gamma)
+				fc = fc.scale(0.5 * exposure / mean).pow(1 / gamma)
 			}
 			img.Set(pxX, pxY, fc.color())
 		}
@@ -56,7 +56,7 @@ func (a *accumulator) image(raw bool) image.Image {
 func (a *accumulator) mean() float64 {
 	var sum float64
 	for _, c := range a.data {
-		sum += c.rgb.x + c.rgb.y + c.rgb.z
+		sum += c.r + c.g + c.b
 	}
 	return sum / float64(len(a.data)) / 3.0
 }

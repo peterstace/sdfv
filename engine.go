@@ -57,7 +57,7 @@ func (e *engine) trace(r ray) fcolor {
 	}
 	brdf := uHemi.dot(uNorm)
 	cf := e.trace(nextR)
-	cf.rgb = cf.rgb.scale(brdf)
+	cf = cf.scale(brdf)
 	return cf
 }
 
@@ -71,7 +71,7 @@ func (e *engine) traceNormal(r ray) fcolor {
 }
 
 func unitDirToColor(uDir vec3) fcolor {
-	return fcolor{rgb: uDir.add(vec3{1, 1, 1}).scale(0.5)}
+	return uDir.add(vec3{1, 1, 1}).scale(0.5).asColor()
 }
 
 func (e *engine) uNormal(v vec3) vec3 {

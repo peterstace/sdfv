@@ -10,9 +10,7 @@ func sun(d vec3, pow float64, col fcolor) sky {
 	return func(v vec3) fcolor {
 		intensity := math.Max(0, v.dot(uDir))
 		intensity = math.Pow(intensity, pow)
-		result := col
-		result.rgb = result.rgb.scale(intensity)
-		return result
+		return col.scale(intensity)
 	}
 }
 
@@ -22,6 +20,6 @@ func baseSky(col fcolor) sky {
 
 func skySum(s1, s2 sky) sky {
 	return func(v vec3) fcolor {
-		return fcolor{s1(v).rgb.add(s2(v).rgb)}
+		return s1(v).add(s2(v))
 	}
 }
