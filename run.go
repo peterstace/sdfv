@@ -2,39 +2,15 @@ package main
 
 import (
 	"image/png"
-	"math"
 	"math/rand"
 	"os"
 	"path/filepath"
 )
 
-func run(pxWide, pxHigh int, filename string, samples int, debug bool) error {
-	cam := newCamera(cameraConfig{
-		location:    vec3{z: 10},
-		lookingAt:   vec3{},
-		upDirection: vec3{y: 1},
-		fovDegrees:  20,
-		focalLength: 3,
-		focalRatio:  math.MaxFloat64,
-	})
-
-	fn := union(
-		sphere(vec3{}, 1),
-		box(vec3{-1.5, -2, -1.5}, vec3{+1.5, -1, +1.5}),
-	)
-
-	sk := skySum(
-		sun(
-			vec3{y: 5, x: 1, z: 2},
-			10.0,
-			fcolor{1, 1, 1},
-		),
-		baseSky(fcolor{0.0005, 0.0005, 0.0010}),
-	)
-
+func run(pxWide, pxHigh int, filename string, samples int, debug bool, scn scene) error {
 	acc := newAccumulator(pxWide, pxHigh)
 	rng := rand.New(rand.NewSource(0))
-	eng := &engine{acc, cam, fn, sk, rng, samples, false}
+	eng := &engine{acc, scn.cam, scn.fn, scn.sk, rng, samples, false}
 	eng.renderFrame()
 	if err := writeAccAsImage(acc, filename, false); err != nil {
 		return err
@@ -43,7 +19,7 @@ func run(pxWide, pxHigh int, filename string, samples int, debug bool) error {
 	if debug {
 		acc := newAccumulator(pxWide, pxHigh)
 		rng := rand.New(rand.NewSource(0))
-		eng := &engine{acc, cam, fn, sk, rng, 1, true}
+		eng := &engine{acc, scn.cam, scn.fn, scn.sk, rng, 1, true}
 		eng.renderFrame()
 		if err := writeAccAsImage(acc, debugNormsFilename(filename), true); err != nil {
 			return err
