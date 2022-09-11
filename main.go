@@ -15,6 +15,10 @@ func main() {
 		debug    = flag.Bool("debug", false, "show debug output")
 	)
 	flag.Parse()
+	if len(flag.Args()) != 0 {
+		log.Printf("unused args: %v\n", flag.Args())
+		os.Exit(1)
+	}
 
 	if err := run(*pxWide, *pxHigh, *filename, *samples, *debug); err != nil {
 		log.Printf("error running: %v", err)
